@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="form to manages leases on AWS DynamoDB">
+    <meta name="author" content="Stuart MMcIntosh">
+    <meta name="version" content="development">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Lease Manager</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <!-- Custom styles for this template -->
+    <link href="form-validation.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="py-5 text-center">
+        <img class="d-block mx-auto mb-4" src="santos.png" alt="" width="250" height="100">
+        <h2>Lease Manager</h2>
+        <div id = "alertPlaceHolder"></div>
+      </div>
+    </div>  
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 order-md-2 mb-4">
+          <h4 class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted">Database Viewer</span>
+            <!-- <span class="badge badge-secondary badge-pill">#</span> -->
+          </h4>
+          <div class="form-group">
+                <textarea class="form-control form-control-sm" id="serversTextArea" rows="3"></textarea>
+            </div>
+        
+        </div>
+        <div class="col-md-8 order-md-1">
+          <h4 class="mb-3">Server Selection</h4>
+          <form class="needs-validation" novalidate>
+            <div class="row">
+              
+              <div class="col-md-8 mb-3">
+                <label for="serverSelector">ServerId : Server Name</label>
+                <select class="custom-select d-block w-100" id="selectServers" required>
+                  <option value="">Choose...</option>
+                </select>
+              </div>
+
+            </div>
+
+            <hr class="mb-4">
+
+            <h6 class="mb-3">*Note: all leases will be set for a 2 month period</h6>
+
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="alwaysOnCheck">
+                <label class="form-check-label" for="alwaysOn">Always On</label>
+            </div>
+            
+            <hr class="mb-4" id='hrStartStop'>
+         
+            <h4 class="mb-3" id='headingStartStop'>Start and Stop Times</h4>
+
+            <div class="row" id='checkStartStop'>
+              <div class="col-md-3 mb-3">
+                <label for="startTime">Start Time</label>
+                <select class="custom-select d-block w-100" id="startTimeSelector" required>
+                </select>
+                <div class="invalid-feedback">
+                  Start Time Required
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="stopTime">Stop Time</label>
+                <select class="custom-select d-block w-100" id="stopTimeSelector" required>
+                </select>
+                <div class="invalid-feedback">
+                  Stop startTime required
+                </div>
+              </div>
+            </div>
+            <hr class="mb-4">
+            <button class="btn btn-primary btn-lg btn-block" id='buttonCommit' type="button">Commit Changes</button>
+            <hr class="mb-4">
+            <button class="btn btn-info btn-lg btn-block" id='buttonTest' type="button">Test Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <footer class="my-5 pt-5 text-muted text-center text-small">
+        <p class="mb-1">&copy; 2018-2019 Santos Ltd</p>
+        <ul class="list-inline">
+          <li class="list-inline-item"><a href="#">Privacy</a></li>
+          <li class="list-inline-item"><a href="#">Terms</a></li>
+          <li class="list-inline-item"><a href="#">Support</a></li>
+        </ul>
+      </footer>
+    </div>
+
+    <!--
+    ================================================== 
+         scripts
+    ================================================== 
+    -->
+   
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
+    <script src="app.js"></script>  
