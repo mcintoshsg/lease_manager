@@ -11,30 +11,7 @@
               aws configurations
     =========================================== */ 
 
-AWS.config.update({
-    region: "ap-southeast-2",
-    // The endpoint should point to the local or remote computer where DynamoDB (downloadable) is running.
-    endpoint: 'https://dynamodb.ap-southeast-2.amazonaws.com',
-    /*
-      accessKeyId and secretAccessKey defaults can be used while using the downloadable version of DynamoDB. 
-      For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
-    */
-    accessKeyId: "AKIAIPGYAXNE3AT553CA",
-    secretAccessKey: "DkTnf6L9pTJWO3x5As5B1owdduXTTQl1iOGTpZid"
-  });
-  
-    /* 
-       Uncomment the following code to configure Amazon Cognito and make sure to 
-       remove the endpoint, accessKeyId and secretAccessKey specified in the code above. 
-       Make sure Cognito is available in the DynamoDB web service region (specified above).
-       Finally, modify the IdentityPoolId and the RoleArn with your own.
-    */
-  /*
-  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-  IdentityPoolId: "us-west-2:12345678-1ab2-123a-1234-a12345ab12",
-  RoleArn: "arn:aws:iam::123456789012:role/dynamocognito"
-  });
-  */
+
 
 /*  ===========================================
                 document + db constants
