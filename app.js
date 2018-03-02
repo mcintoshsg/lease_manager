@@ -11,7 +11,29 @@
               aws configurations
     =========================================== */ 
 
-
+AWS.config.update({
+    region: "ap-southeast-2",
+    // The endpoint should point to the local or remote computer where DynamoDB (downloadable) is running.
+    endpoint: 'https://dynamodb.ap-southeast-2.amazonaws.com',
+    /*
+      accessKeyId and secretAccessKey defaults can be used while using the downloadable version of DynamoDB. 
+      For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+    */
+   
+  });
+  
+    /* 
+       Uncomment the following code to configure Amazon Cognito and make sure to 
+       remove the endpoint, accessKeyId and secretAccessKey specified in the code above. 
+       Make sure Cognito is available in the DynamoDB web service region (specified above).
+       Finally, modify the IdentityPoolId and the RoleArn with your own.
+    */
+  /*
+  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+  IdentityPoolId: "us-west-2:12345678-1ab2-123a-1234-a12345ab12",
+  RoleArn: "arn:aws:iam::123456789012:role/dynamocognito"
+  });
+  */
 
 /*  ===========================================
                 document + db constants
@@ -23,17 +45,12 @@ const tableName = "ServerStartupShutdownDev";
 
 const buttonListTables = document.getElementById("buttonListTables");
 const buttonCommit = document.getElementById("buttonCommit");
-const startStopDiv = document.getElementById("checkStartStop");
-const startStopHr = document.getElementById("hrStartStop");
 const checkAlwaysOn = document.getElementById("alwaysOnCheck");
 const dateTimePicker = document.getElementById("dateTimePicker");
 const selectServers = document.getElementById('selectServers');
-const startSelect = document.getElementById('startTimeSelector');
-const stopSelect = document.getElementById('stopTimeSelector');
 const alertPlaceHolder = document.getElementById('alertPlaceHolder');
 
-const buttonTest = document.getElementById("buttonTest");       
-
+const SERVER_LIST = [];
 
 /*  ===========================================
                database functions
@@ -44,9 +61,6 @@ const buttonTest = document.getElementById("buttonTest");
     macth the query expression i.e all servers that have a type of VDI 
 */   
 function scanData() {
-    document.getElementById('serversTextArea').innerHTML = "";
-    document.getElementById('serversTextArea').innerHTML += "Scanning for all servers" + "\n";
-  
     var params = {
         TableName: tableName,
         FilterExpression: "InstanceType = :val",
@@ -57,18 +71,18 @@ function scanData() {
     docClient.scan(params, onScan);
 
     function onScan(err, data) {
-        let serverList = [];
+        namesArray = []
         if (err) {
-            console.log(err);
+            console.log("Unable to scan: " + "\n" + JSON.stringify(err, undefined, 2));
+            showAlert('Error occured with scan', "alert-danger");
         } else {
             // Print all the servers
-            document.getElementById('serversTextArea').innerHTML += "Scan succeeded: " + "\n";
             data.Items.forEach(function(server) {
-            document.getElementById('serversTextArea').innerHTML += server.InstanceType + ": " + server.Name + "\n";
-                serverList.push(server.Id + " : " + server.Name);
+                SERVER_LIST.push({Id: server.Id, Name: server.Name});
+                namesArray.push(server.Name);
             });
         }
-        populateServerSelect(serverList);
+        populateServerSelect(namesArray.sort());
     }
 }
 
@@ -79,7 +93,7 @@ function scanData() {
    StartUpTime (optional)'
    ShutDownTime (optional)'
 */   
-function updateServer(serverId, alwaysOn, startTime, stopTime, dateUntil) {
+function updateServer(serverId, serverName, alwaysOn, startTime, stopTime, dateUntil) {
     var params = {
         TableName: tableName,
         Key:{
@@ -98,21 +112,22 @@ function updateServer(serverId, alwaysOn, startTime, stopTime, dateUntil) {
 
     docClient.update(params, function(err, data) {
         if (err) {
-            document.getElementById('serversTextArea').innerHTML = "Unable to update item: " + "\n" + JSON.stringify(err, undefined, 2);
+            console.log(JSON.stringify(err, undefined, 2));
+            showAlert('Update failed', "alert-danger");
         } else {
-            document.getElementById('serversTextArea').innerHTML = "UpdateItem succeeded: " + "\n" + JSON.stringify(data, undefined, 2);
+            console.log(serverId + " " + serverName + " have been successfully updated");
+            console.log(JSON.stringify(data, undefined, 2));
+            showAlert('Server ' + serverName + " has been updated", "alert-success");
         }
-    });
-}
 
-/* function readSingleServer
+    });
+}   
+
+/* function readSingleServer - use this to test changes
    Inputs : server to that has just been update
    Output: Update server
 */   
 function readSingleServer(serverId) {
-    document.getElementById('serversTextArea').innerHTML = "";
-    document.getElementById('serversTextArea').innerHTML += "Scanning for single server" + "\n";
-  
     var params = {
         TableName: tableName,
         Key:{
@@ -122,93 +137,40 @@ function readSingleServer(serverId) {
         
     docClient.get(params, function(err, data) {
         if (err) {
-            document.getElementById('serversTextArea').innerHTML = "Unable to read item: " + "\n" + JSON.stringify(err, undefined, 2);
+            console.log("Unable to read item: " + "\n" + JSON.stringify(err, undefined, 2));
         } else {
-            document.getElementById('serversTextArea').innerHTML = "GetItem succeeded: " + "\n" + JSON.stringify(data, undefined, 2);
+            console.log("GetItem succeeded: " + "\n" + JSON.stringify(data, undefined, 2));
         }
     });
 }
-
 
 /*  ===========================================
                 setup the form
     =========================================== */  
 
-/* function: loadTimes
-    Inputs :  list of string of times 
-    Outputs : Updates the server select with the server names
-    Note: this is a shit function - the Jquery time picker should be used, 
-    however it is not avialbale across all browsers
- */    
-function loadTimes(){
-    timeList = [];
-    let stringTime = '';
-    for(let hours = 0; hours < 24; hours++){
-        for(let mins = 0; mins < 60; mins += 15){
-            if(hours < 10){
-                stringHours= '0' + hours.toString(); 
-            } else {
-                stringHours = hours.toString();
-            }
-            if(mins === 0){
-                stringMins= '0' + mins.toString(); 
-            } else {
-                stringMins = mins.toString();
-            }
-            timeList.push(stringHours + ':' + stringMins);
-        }
-    }
-    return timeList;
-}
-
-/* function populateTimeSelectors
-   Inputs :  list of string of times 
-   Outputs : Updates the time selesctors with a 24 hours at 15 min increments
-*/
-function populateTimeSelectors(arr){
-    for(i = 0; i < arr.length; i++){
-        startSelect.options[startSelect.options.length] = new Option(arr[i], startSelect.options.length);
-        stopSelect.options[stopSelect.options.length] = new Option(arr[i], stopSelect.options.length);
-    }
-}
-
 /* function populateServerSelect
    Inputs : list of all server names 
    Outputs : Updates the server select with the server names
 */   
-function populateServerSelect(dbData){
-    for(i = 0; i < dbData.length; i++){
-        selectServers.options[selectServers.options.length] = new Option(dbData[i], selectServers.options.length);
-    }    
+function populateServerSelect(arr){
+    for(i=0; i < arr.length; i++){
+        selectServers.options[selectServers.options.length] = new Option(arr[i], selectServers.options.length);
+    }
 }	
 
-/* function toggleDIVAndHR
-   Outputs : toggle DIV and HR elements on the page
-*/   
-function toggleDiVAndHr(){
-    if (startStopDiv.style.display === 'flex') {
-        startStopDiv.style.display = 'none';
-        startStopHr.style.display = 'none';
-        document.getElementById('headingStartStop').innerHTML = '';
-    } else {
-        startStopDiv.style.display = 'flex';
-        startStopHr.style.display = 'block';
-        document.getElementById('headingStartStop').innerHTML = 'Start Stop Times';
-    }                         
-}
+/*  ===========================================
+                reset the form
+    =========================================== */  
 
-/* function formSetup
-   Outputs : populates the form and toggles display items
+/* function resetForm
+   Outputs : Uall widgets set back to defaul state
 */   
-function formSetUp(){
-    startStopDiv.style.display = 'flex';
-    startStopHr.style.display = 'flex';
-    buttonTest.style.display = 'none';
-    document.getElementById('headingStartStop').innerHTML = 'Start Stop Times';
-    let timeList = loadTimes();
-    populateTimeSelectors(timeList);
-    scanData();
-}
+function resetForm(){
+    //set the server index back to 0
+    selectServers.options.selectedIndex = 0;
+    $("#dateTimePicker").val('');
+    checkAlwaysOn.checked = '';
+}	
 
 /*  ===========================================
                 form validatiors
@@ -224,10 +186,10 @@ function formSetUp(){
 
 function validateForm(selectedServer){
     if (selectedServer === 'Choose...'){
-        alert('Please select a server!');
+        showAlert('Please select a server', "alert-warning");
         return false;
     } else if(testTime() !== true){
-        alert('Start Time cannot be the same as or before Stop Time!');
+        showAlert('Start time cannot be the same or after Stop time', "alert-danger");
         return false;
     } else {
         return true;
@@ -238,86 +200,84 @@ function validateForm(selectedServer){
 /*  ===========================================
                 document listeners
     =========================================== */    
-
 buttonCommit.addEventListener('click', function() {
-    let selectedServer = selectServers.options[selectServers.selectedIndex].text;
-    let startTime = startSelect.options[startSelect.selectedIndex].text;
-    let stopTime = stopSelect.options[stopSelect.selectedIndex].text;
+    let selectedServer = selectServers.options[selectServers.selectedIndex].text
+    let startTime = $("#startTime").val()
+    let stopTime = $("#stopTime").val()
     let alwaysOn = 'False';
    
     if (checkAlwaysOn.checked === true){
         alwaysOn = 'True';
+        startTime = '00:00';
+        stopTime = '00:00';
     }
 
-    let arr = splitString(selectedServer, ':');
+    let id = lookUpID(selectedServer);
     if(validateForm(selectedServer)){
-        updateServer(arr[0], alwaysOn, startTime, stopTime, getDateUntil());
-        buttonTest.style.display = 'block';
-   }
-});
-
-checkAlwaysOn.addEventListener('click', function() {
-    toggleDiVAndHr();
+        updateServer(id, selectedServer, alwaysOn, startTime, stopTime, getDateUntil());
+       }
+  resetForm();
 });
 
 window.addEventListener('load', function(event) {
-    formSetUp();
+    showAlert("This works",'alert-success');
+    scanData();
+    fetchID();
 });
 
-
-/*  ===========================================
-                  test
-    =========================================== */ 
-
-buttonTest.addEventListener('click', function(){
-    let selectedServer = selectServers.options[selectServers.selectedIndex].text
-    let arr = splitString(selectedServer, ':');
-
-    readSingleServer(arr[0]);
-    buttonTest.style.display = 'none';
-});
 
 /*  ===========================================
                     utils 
     =========================================== */    
-/* function splitString
-    input : string, and delimiter of where to split 
-    Output : an array of the split strinmg
+/* function lookUpID
+    input : selected server name
+    Output : the ID asscoiated with the server
 */
-function splitString(str, del){
-    let strArray = [];
-    let num = str.indexOf(del);
-    let a = str.slice(0, num - 1);
-    let b = str.slice(num + 1, str.length);
-  
-    strArray.push(a);
-    strArray.push(b);
-   
-    return strArray;
-} 
+function lookUpID(server){
+    for(let i=0; i < SERVER_LIST.length; i++){
+        if(SERVER_LIST[i].Name === server){
+            return SERVER_LIST[i].Id;
+      }
+    }
+}
 
 /* function getDateUntil
     Output : string in the format 'YY-MM-DD' 2 months ahead of todays date
 */
 function getDateUntil(){
-    let today = new Date();
-    today.setMonth(today.getMonth() + 2);
-
-    let todayFmt = today.toISOString().slice(0, 10);
-    return todayFmt
+    let selectedDate = $("#dateTimePicker").val()
+    return selectedDate;
 }
 
 /* function testTime
     Output : checks that the startTime is < the stopTime
 */
 function testTime(){
-    let startIndex = startSelect.selectedIndex;
-    let stopIndex = stopSelect.selectedIndex;
+    let startTime = $('#startTime').val();
+    let stopTime = $('#stopTime').val();
+
     if(checkAlwaysOn.checked === true){
         return true;
-    } else if(startIndex >= stopIndex){
+    } else if(startTime >= stopTime){
         return false;
     } else {
         return true;
     }
 }
+
+function fetchID(){
+
+    $.ajax({
+
+        url: "https://idpdev.santos.com/adfs/ls/IdpInitiatedSignOn.aspx?loginToRp=urn:santos:people",
+        type: "GET",
+        crossDomain: true,
+        success: function(response){
+          console.log(response);
+        },
+        error: function(xhr, status){
+          console.log(status);
+        }  
+  
+      });
+ }   

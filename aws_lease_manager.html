@@ -4,100 +4,137 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="form to manages leases on AWS DynamoDB">
-    <meta name="author" content="Stuart MMcIntosh">
+    <meta name="author" content="Stuart McIntosh">
     <meta name="version" content="development">
-    <link rel="icon" href="../../../../favicon.ico">
+    <!-- <link rel="icon" href="../../../../favicon.ico"> -->
 
     <title>Lease Manager</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    
-    <!-- Custom styles for this template -->
-    <link href="form-validation.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet"> <style> body {font-family: 'noto+Sans', sans-serif; font-size: 14px;} </style>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
   </head>
 
   <body>
 
+    <!-- page logo and main heading -->
     <div class="container">
       <div class="py-5 text-center">
-        <img class="d-block mx-auto mb-4" src="santos.png" alt="" width="250" height="100">
+        <img class="d-block mx-auto mb-4" src="santos.png" alt="" width="280" height="100">
         <h2>Lease Manager</h2>
-        <div id = "alertPlaceHolder"></div>
+         <!-- plaholder for all messages -->
+         <div id="alertPlaceHolder" width=200px></div>
       </div>
     </div>  
 
-    <div class="container">
+    <!-- start of the form  -->
+     <div class="container">
       <div class="row">
-        <div class="col-md-4 order-md-2 mb-4">
-          <h4 class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-muted">Database Viewer</span>
-            <!-- <span class="badge badge-secondary badge-pill">#</span> -->
-          </h4>
-          <div class="form-group">
-                <textarea class="form-control form-control-sm" id="serversTextArea" rows="3"></textarea>
-            </div>
-        
-        </div>
         <div class="col-md-8 order-md-1">
-          <h4 class="mb-3">Server Selection</h4>
-          <form class="needs-validation" novalidate>
+          <h3 class="mb-3">Server Selection</h3>
+         
+            <!-- server selector --> 
             <div class="row">
-              
               <div class="col-md-8 mb-3">
-                <label for="serverSelector">ServerId : Server Name</label>
+                <label for="serverSelector">Server Name</label>
                 <select class="custom-select d-block w-100" id="selectServers" required>
                   <option value="">Choose...</option>
                 </select>
               </div>
+            </div> 
 
-            </div>
-
+            <!-- line break -->
             <hr class="mb-4">
 
-            <h6 class="mb-3">*Note: all leases will be set for a 2 month period</h6>
+            <!-- the lease date selector  -->
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                  <label class="control-label" for="date">Lease Date</label>
+                  <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                      </div>
+                      <input type="text" class="form-control" name="date" id="dateTimePicker"> 
+                  </div>
+              </div>  
+            </div>  
 
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="alwaysOnCheck">
-                <label class="form-check-label" for="alwaysOn">Always On</label>
-            </div>
-            
+            <!-- collapseable group -->
+            <div id="accordion"> 
+
+              <!-- first card -->
+              <div class="card">
+                  
+                  <!-- card heading -->
+                  <div class="card-header" id="headingOne">
+                    <h4 class="mb-0">
+                      <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Standard Lease
+                      </button>
+                    </h4>
+                  </div>
+              
+                  <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                       <!-- start time selection -->
+                      <div class="row" id='checkStartStop'>
+                          <div class="col-md-3 mb-3">
+                            <label for="startTime">Start Time</label>
+                            <input id="startTime" type="text" class="timePicker" />
+                            <!-- <select class="custom-select d-block w-100" id="startTimeSelector" required> -->
+                            <!-- </select> -->
+                          </div>
+  
+                          <!-- stop time selection -->
+                           <div class="col-md-3 mb-3">
+                              <label for="stopTime">Stop Time</label>
+                              <input id="stopTime" type="text" class="timePicker" />
+                              <!-- <select class="custom-select d-block w-100" id="stopTimeSelector" required> -->
+                              <!-- </select> -->
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+               
+                <!-- second card -->
+                <div class="card">
+
+                  <div class="card-header" id="headingTwo">
+                    <h4 class="mb-0">
+                      <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Exception Lease
+                      </button>
+                    </h4>
+                  </div>
+                  <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="alwaysOnCheck">
+                            <label class="form-check-label" for="alwaysOn">Always On</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+             </div>   
+
+             
+            <!--  line break -->
             <hr class="mb-4" id='hrStartStop'>
-         
-            <h4 class="mb-3" id='headingStartStop'>Start and Stop Times</h4>
-
-            <div class="row" id='checkStartStop'>
-              <div class="col-md-3 mb-3">
-                <label for="startTime">Start Time</label>
-                <select class="custom-select d-block w-100" id="startTimeSelector" required>
-                </select>
-                <div class="invalid-feedback">
-                  Start Time Required
-                </div>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label for="stopTime">Stop Time</label>
-                <select class="custom-select d-block w-100" id="stopTimeSelector" required>
-                </select>
-                <div class="invalid-feedback">
-                  Stop startTime required
-                </div>
-              </div>
-            </div>
-            <hr class="mb-4">
+            
+            <!-- commit form button -->
             <button class="btn btn-primary btn-lg btn-block" id='buttonCommit' type="button">Commit Changes</button>
-            <hr class="mb-4">
-            <button class="btn btn-info btn-lg btn-block" id='buttonTest' type="button">Test Changes</button>
-          </form>
+         
         </div>
       </div>
 
       <footer class="my-5 pt-5 text-muted text-center text-small">
         <p class="mb-1">&copy; 2018-2019 Santos Ltd</p>
         <ul class="list-inline">
-          <li class="list-inline-item"><a href="#">Privacy</a></li>
-          <li class="list-inline-item"><a href="#">Terms</a></li>
-          <li class="list-inline-item"><a href="#">Support</a></li>
+          <li class="list-inline-item"><a href="mailto:stuart.graham@santos.com?Subject=Support">Support</a></li>
         </ul>
       </footer>
     </div>
@@ -107,9 +144,11 @@
          scripts
     ================================================== 
     -->
-   
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
     <script src="app.js"></script>  
+    <script src="datetime.js"></script>
+    <script src="alert.js"></script>  
